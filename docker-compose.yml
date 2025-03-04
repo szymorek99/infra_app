@@ -1,0 +1,47 @@
+services:
+  backend:
+    image: backend-app
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      NODE_ENV: production
+    ports:
+      - 3000:3000
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - backend
+
+  db:
+    image: postgres:9.4
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER_FILE: /run/secrets/postgres_login_secret
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password_secret
+    secrets:
+      - postgres_login_secret
+      - postgres_password_secret
+    networks:
+      - backend
+
+secrets:
+  postgres_login_secret:
+    file: /home/app/secret_data/postgres_login.txt
+  postgres_password_secret:
+    file: /home/app/secret_data/postgres_password.txt
+
+volumes:
+  postgres_data:
+    driver: local
+
+  postgres_backup:
+    driver: local
+    driver_opts:
+      type: none
+      device: /home/app/db_data
+
+networks:
+  backend:
+    driver: bridge
